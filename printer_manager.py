@@ -8,16 +8,12 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 np.seterr(divide='ignore', invalid='ignore')
 
-# Global variables to simulate printer statistics
 total_pages_printed = 0
 total_print_jobs = 0
 total_print_time = 0
 total_ink_usage = 0
 
-# Simulated job data (to be updated dynamically)
 jobs = []
-
-# Dictionary to track printer status
 printer_status = {}
 
 def get_printers():
@@ -32,19 +28,12 @@ def get_printer_status(printer_id):
 def send_print_job(printer_id, pages, options):
     global jobs, printer_status
 
-    # Update printer status to "Busy"
     printer_status[printer_id] = "Busy"
 
-    # Simulate print time (30 seconds per job)
     print_time = 30.0
-
-    # Simulate ink usage (2% per page)
     ink_usage = pages * 2
-
-    # Generate job ID
     job_id = f"Job{len(jobs) + 1}"
 
-    # Add job to the jobs list
     jobs.append({
         "job_id": job_id,
         "printer_id": printer_id,
@@ -56,17 +45,15 @@ def send_print_job(printer_id, pages, options):
         "status": "printing"
     })
 
-    # Simulate printing in a separate thread
     threading.Thread(target=complete_print_job, args=(job_id, print_time)).start()
 
 def complete_print_job(job_id, print_time):
     global jobs, printer_status
-    time.sleep(print_time)  # Simulate printing time
+    time.sleep(print_time)
     for job in jobs:
         if job["job_id"] == job_id and job["status"] == "printing":
             job["status"] = "completed"
             job["end_time"] = time.time()
-            # Update printer status to "Ready" when job completes
             printer_status[job["printer_id"]] = "Ready"
 
 def cancel_print_job(printer_id, job_id):
@@ -74,7 +61,6 @@ def cancel_print_job(printer_id, job_id):
     for job in jobs:
         if job["job_id"] == job_id and job["status"] == "printing":
             job["status"] = "cancelled"
-            # Update printer status to "Ready" when job is cancelled
             printer_status[printer_id] = "Ready"
             return True
     return False
@@ -86,16 +72,13 @@ def get_print_queue(printer_id):
 def perform_maintenance(printer_id, task):
     global jobs, printer_status
 
-    # Assuming task is to empty all queues
     if task == "Empty Queue":
         for job in jobs:
             if job["printer_id"] == printer_id and job["status"] == "printing":
                 job["status"] = "cancelled"
-        # Update printer status to "Ready"
         printer_status[printer_id] = "Ready"
         return True
     else:
-        # Handle other maintenance tasks here if needed
         return False
 
 def get_printer_statistics(printer_id):
@@ -110,7 +93,6 @@ def get_printer_statistics(printer_id):
 
     avg_print_time = total_print_time / total_print_jobs if total_print_jobs > 0 else 0
 
-    # Alert if ink usage is greater than 80%
     if total_ink_usage > 80:
         messagebox.showwarning("Warning", "Ink usage is greater than 80%")
         printer_status[printer_id] = "Low Ink"
@@ -126,12 +108,9 @@ def get_printer_statistics(printer_id):
 def reset_printer_statistics(printer_id):
     global jobs, printer_status
 
-    # Example: Clear completed jobs for the printer
-    global jobs
     jobs = [job for job in jobs if job["printer_id"] != printer_id or job["status"] != "completed"]
 
-    # Reset other statistics if needed
-    return True  # Return True if reset successful, otherwise False
+    return True
 
 class PrinterManager:
     def __init__(self, master):
@@ -139,7 +118,6 @@ class PrinterManager:
         master.title("Printer Manager")
         master.geometry("700x800")
 
-        # Create tabs
         self.notebook = ttk.Notebook(master)
         self.notebook.pack(expand=True, fill="both")
 
@@ -151,58 +129,47 @@ class PrinterManager:
         self.setup_main_frame()
         self.setup_stats_frame()
 
-        # Initialize printer status (default to "Ready")
         printers = get_printers()
         for printer in printers:
             printer_status[printer] = "Ready"
 
-        # Bind the closing event
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        # Set up periodic updates
         self.after_id = self.master.after(5000, self.periodic_update)
 
     def setup_main_frame(self):
-        # Printer selection
         ttk.Label(self.main_frame, text="Select Printer:").pack(pady=5)
         self.printer_var = tk.StringVar()
         self.printer_combo = ttk.Combobox(self.main_frame, textvariable=self.printer_var)
         self.printer_combo.pack()
         self.update_printer_list()
 
-        # Printer status
         self.status_label = ttk.Label(self.main_frame, text="Status: N/A")
         self.status_label.pack(pady=5)
 
-        # Print settings
         ttk.Label(self.main_frame, text="Print Settings:").pack(pady=5)
         self.duplex_var = tk.BooleanVar()
         ttk.Checkbutton(self.main_frame, text="Duplex Mode", variable=self.duplex_var).pack()
         self.color_var = tk.BooleanVar()
         ttk.Checkbutton(self.main_frame, text="Color Mode", variable=self.color_var).pack()
 
-        # Print job options
         ttk.Button(self.main_frame, text="Send Print Job", command=self.send_print_job_handler).pack(pady=5)
         ttk.Button(self.main_frame, text="Cancel Print Job", command=self.cancel_print_job).pack(pady=5)
 
-        # Print queue
         self.queue_frame = ttk.LabelFrame(self.main_frame, text="Print Queue")
         self.queue_frame.pack(pady=10, padx=10, fill="x")
         self.queue_listbox = tk.Listbox(self.queue_frame, height=5)
         self.queue_listbox.pack(fill="x")
 
-        # Update buttons
         ttk.Button(self.main_frame, text="Update Status", command=self.update_status).pack(pady=5)
         ttk.Button(self.main_frame, text="Update Queue", command=self.update_queue).pack(pady=5)
 
-        # Maintenance options
         maintenance_tasks = ["Clean Print Heads", "Align Cartridges", "Update Firmware", "Empty Queue"]
         self.maintenance_var = tk.StringVar()
         ttk.Combobox(self.main_frame, textvariable=self.maintenance_var, values=maintenance_tasks).pack(pady=5)
         ttk.Button(self.main_frame, text="Perform Maintenance", command=self.perform_maintenance).pack(pady=5)
 
     def setup_stats_frame(self):
-        # Statistics display
         self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, figsize=(8, 10))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.stats_frame)
         self.canvas.draw()
@@ -232,7 +199,6 @@ class PrinterManager:
     def send_print_job_handler(self):
         printer_id = self.printer_var.get()
         if printer_id:
-            # Simulated job with 2 pages
             pages = 2
             options = {
                 "duplex": self.duplex_var.get(),
@@ -285,8 +251,7 @@ class PrinterManager:
         if stats:
             labels = ["Total Pages Printed", "Average Print Time"]
             values = [stats["total_pages"], stats["avg_print_time"]]
-            
-            # Ensure we're not dividing by zero
+
             if sum(values) > 0:
                 colors = ['gold', 'yellowgreen']
                 explode = (0.1, 0)
