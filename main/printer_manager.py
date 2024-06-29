@@ -1,3 +1,7 @@
+# 1. This application take 30 sec to get the data to make the graphs for statistics after the first print job is send as it has to get the data that user will enter
+# 2. This application takes 2 pages per job.
+# 3. This application takes 30 sec per job per page.
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
