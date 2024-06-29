@@ -2,7 +2,10 @@
 
 This application provides a simple interface for managing and monitoring printers. It allows users to send print jobs, cancel print jobs, perform maintenance tasks, and view printer statistics in real-time.
 
-## This application take 30 sec to get the data to make the graphs for statistics after the first print job is send as it has to get the data that user will enter
+## 1. This application take 30 sec to get the data to make the graphs for statistics after the first print job is send as it has to get the data that user will enter
+## 2. This application takes 2 pages per job. 
+## 3. This application takes 30 sec per job per page.
+
 
 ## Features
 
